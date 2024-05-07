@@ -105,16 +105,92 @@ class HashMap {
   
     return false;  
   }
+
+  length() {
+    return this.size;
+  }
+  
+
+  clear() {
+    this.buckets = new Array(this.bucketSize).fill(null).map(() => []);
+    this.size = 0;
+  }
+  
+  keys() {
+    const allKeys = [];
+    
+    for (const bucket of this.buckets) {
+      if (bucket) {
+        for (const [key, value] of bucket) {
+          allKeys.push(key);
+        }
+      }
+    }
+  
+    return allKeys;
+  }
+
+  values() {
+    const allValues = [];
+  
+    for (const bucket of this.buckets) {
+      if (bucket) {
+        for (const [key, value] of bucket) {
+          allValues.push(value);
+        }
+      }
+    }
+  
+    return allValues;
+  }
+  
+  entries() {
+    const allEntries = [];
+  
+    for (const bucket of this.buckets) {
+      if (bucket) {
+        for (const entry of bucket) {
+          allEntries.push(entry);  // entry is already an array [key, value]
+        }
+      }
+    }
+  
+    return allEntries;
+  }
   
 
 }
 
+// HashMap Functional Tests
+
+// Setup: Create a new HashMap instance
 let map = new HashMap();
 
+// Setting Key-Value Pairs
+// ========================
+// Testing the `set` method
 map.set("banana", 1);
 map.set("apple", 5);
-map.set("orange", 10);
+map.set("orange", 2);
 
+// Keys Retrieval
+// ==============
+// Testing the `keys` method
+console.log("All keys:", map.keys()); // Output: ['banana', 'apple', 'orange']
+
+// Values Retrieval
+// =================
+// Testing the `values` method
+console.log("All values:", map.values()); // Output: [1, 5, 2]
+
+// Entries Retrieval
+// ==================
+// Testing the `entries` method
+console.log("All entries:", map.entries()); // Output: [['banana', 1], ['apple', 5], ['orange', 2]]
+
+// Bucket Structure Inspection
+// ===========================
+// Display the internal bucket structure to verify data distribution
 console.log("After setting keys:");
 map.buckets.forEach((bucket, index) => {
   if (bucket.length > 0) {
@@ -122,45 +198,36 @@ map.buckets.forEach((bucket, index) => {
   }
 });
 
-// Testing 'get' method
-console.log("Get 'banana':", map.get("banana"));  // Should output 1
-console.log("Get 'apple':", map.get("apple"));    // Should output 5
-console.log("Get 'orange':", map.get("orange"));  // Should output 10
-console.log("Get 'melon':", map.get("melon"));    // Should output null, not added
+// Length and Removal
+// ==================
+// Testing `length` and `remove` methods
+console.log("Current number of key-value pairs:", map.length()); // Output: 3
+map.remove("banana");
+console.log("After removing 'banana', length is:", map.length()); // Output: 2
+console.log("Remaining entries after 'banana' removal:", map.entries()); // Output: [['apple', 5], ['orange', 2]]
 
-// Testing 'has' method
-console.log("Has 'banana':", map.has("banana"));  // Should output true
-console.log("Has 'melon':", map.has("melon"));    // Should output false, not added
+// Clear Method
+// ============
+// Testing the `clear` method
+map.clear();
+console.log("After clearing, length is:", map.length()); // Output: 0
+console.log("Is map empty after clearing?", map.buckets.every(bucket => bucket.length === 0)); // Output: true
 
-// Testing 'remove' method
-console.log("Remove 'orange':", map.remove("orange"));  // Should output true
-console.log("Has 'orange' after removal:", map.has("orange"));  // Should output false
-console.log("Remove 'melon':", map.remove("melon"));  // Should output false, not added
+// Collision Handling
+// ==================
+// Testing collision handling by adding two keys that potentially hash to the same bucket
+map.set("key1", "Test1");
+map.set("key2", "Test2"); // Assume "key1" and "key2" collide
+console.log("Check collision handling:", map.get("key1"), map.get("key2")); // Should output Test1 and Test2
 
-// Check size of the HashMap
-console.log("Current size of the HashMap:", map.size);  // Should match the number of key-value pairs
+// Removal after Collision
+// =======================
+// Testing removal of a colliding key and ensuring the other remains
+map.remove("key1");
+console.log("After removing 'key1':", map.get("key1"), "; 'key2' still exists:", map.get("key2")); // Should output null and Test2
 
-// Add more keys to test resizing and collision handling
-map.set("grape", 15);
-map.set("peach", 20);
-
-// Print all buckets after more additions to see collision handling
-console.log("After more additions:");
-map.buckets.forEach((bucket, index) => {
-  if (bucket.length > 0) {
-    console.log(`Bucket ${index}:`, bucket);
-  }
-});
-
-// Remove a key and check the internal structure
-map.remove("apple");
-console.log("After removing 'apple':");
-map.buckets.forEach((bucket, index) => {
-  if (bucket.length > 0) {
-    console.log(`Bucket ${index}:`, bucket);
-  }
-});
-
-// Finally, check the consistency of keys and values
-console.log("Keys in HashMap:", map.keys());  // Should list remaining keys
-console.log("Values in HashMap:", map.values());  // Should list values corresponding to remaining keys
+// Re-test Clear Method
+// =====================
+// Ensure `clear` works after repopulating
+map.clear();
+console.log("After clearing again, verify buckets:", map.buckets.every(bucket => bucket.length === 0)); // Output: true
